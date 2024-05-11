@@ -1,0 +1,2 @@
+/usr/bin/ar qc libxlstm_cpp.a CMakeFiles/xlstm_cpp.dir/utils/utils.cpp.o CMakeFiles/xlstm_cpp.dir/layers/slstm_layer.cpp.o CMakeFiles/xlstm_cpp.dir/layers/mlstm_layer.cpp.o CMakeFiles/xlstm_cpp.dir/blocks/xlstm_block.cpp.o CMakeFiles/xlstm_cpp.dir/models/xlstm_model.cpp.o
+/usr/bin/ranlib libxlstm_cpp.a

@@ -1,0 +1,2 @@
+/usr/bin/ar qc libxlstm_cuda.a CMakeFiles/xlstm_cuda.dir/kernels/slstm_kernels.cu.o CMakeFiles/xlstm_cuda.dir/kernels/mlstm_kernels.cu.o CMakeFiles/xlstm_cuda.dir/kernels/block_kernels.cu.o
+/usr/bin/ranlib libxlstm_cuda.a
