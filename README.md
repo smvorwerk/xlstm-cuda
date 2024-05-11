@@ -173,6 +173,12 @@ xlstm/
 │   │   │   └── xlstm_model.py
 │   │   └── utils/
 │   │       └── __init__.py
+│   ├── examples/
+│   │   ├── example_llm.py
+│   │   ├── example_time_series_forecast.py
+│   │   └── example_xlstm.py
+│   ├── tests/
+│   │   └── test_xlstm.py
 │   └── setup.py
 ├── CMakeLists.txt
 ├── OVERVIEW.md
