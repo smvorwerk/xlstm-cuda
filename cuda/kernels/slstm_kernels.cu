@@ -30,13 +30,8 @@ __global__ void slstm_forward_kernel(const T *__restrict__ x,
                                      const T *__restrict__ b_o,
                                      int batch_size,
                                      int input_size,
-                                     int hidden_size,
-                                     T *__restrict__ i_gate,
-                                     T *__restrict__ f_gate,
-                                     T *__restrict__ z_gate,
-                                     T *__restrict__ o_gate)
+                                     int hidden_size)
 {
-
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = blockDim.x * gridDim.x;
 
@@ -45,19 +40,18 @@ __global__ void slstm_forward_kernel(const T *__restrict__ x,
         int batch = i / hidden_size;
         int hidx = i % hidden_size;
 
-        // Store forward pass variables in global memory
-        i_gate[i] = sigmoid(w_i[hidx] * x[batch * input_size + hidx] +
-                            r_i[hidx] * h_prev[batch * hidden_size + hidx] +
-                            b_i[hidx]);
-        f_gate[i] = sigmoid(w_f[hidx] * x[batch * input_size + hidx] +
-                            r_f[hidx] * h_prev[batch * hidden_size + hidx] +
-                            b_f[hidx]);
-        z_gate[i] = tanh(w_z[hidx] * x[batch * input_size + hidx] +
-                         r_z[hidx] * h_prev[batch * hidden_size + hidx] +
-                         b_z[hidx]);
-        o_gate[i] = sigmoid(w_o[hidx] * x[batch * input_size + hidx] +
-                            r_o[hidx] * h_prev[batch * hidden_size + hidx] +
-                            b_o[hidx]);
+        T i_gate = sigmoid(w_i[hidx] * x[batch * input_size + hidx] +
+                           r_i[hidx] * h_prev[batch * hidden_size + hidx] +
+                           b_i[hidx]);
+        T f_gate = sigmoid(w_f[hidx] * x[batch * input_size + hidx] +
+                           r_f[hidx] * h_prev[batch * hidden_size + hidx] +
+                           b_f[hidx]);
+        T z_gate = tanh(w_z[hidx] * x[batch * input_size + hidx] +
+                        r_z[hidx] * h_prev[batch * hidden_size + hidx] +
+                        b_z[hidx]);
+        T o_gate = sigmoid(w_o[hidx] * x[batch * input_size + hidx] +
+                           r_o[hidx] * h_prev[batch * hidden_size + hidx] +
+                           b_o[hidx]);
 
         c[i] = f_gate * c_prev[i] + i_gate * z_gate;
         n[i] = f_gate * n_prev[i] + i_gate;
@@ -101,11 +95,7 @@ __global__ void slstm_backward_kernel(const T *__restrict__ grad_h,
                                       T *__restrict__ grad_b_o,
                                       int batch_size,
                                       int input_size,
-                                      int hidden_size,
-                                      const T *__restrict__ i_gate,
-                                      const T *__restrict__ f_gate,
-                                      const T *__restrict__ z_gate,
-                                      const T *__restrict__ o_gate)
+                                      int hidden_size)
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = blockDim.x * gridDim.x;
@@ -115,11 +105,19 @@ __global__ void slstm_backward_kernel(const T *__restrict__ grad_h,
         int batch = i / hidden_size;
         int hidx = i % hidden_size;
 
-        // Retrieve forward pass variables from global memory
-        T i_gate_val = i_gate[i];
-        T f_gate_val = f_gate[i];
-        T z_gate_val = z_gate[i];
-        T o_gate_val = o_gate[i];
+        // Forward gate computations (need to be recalculated for backward pass)
+        T i_gate = sigmoid(w_i[hidx] * x[batch * input_size + hidx] +
+                           r_i[hidx] * h_prev[batch * hidden_size + hidx] +
+                           b_i[hidx]);
+        T f_gate = sigmoid(w_f[hidx] * x[batch * input_size + hidx] +
+                           r_f[hidx] * h_prev[batch * hidden_size + hidx] +
+                           b_f[hidx]);
+        T z_gate = tanh(w_z[hidx] * x[batch * input_size + hidx] +
+                        r_z[hidx] * h_prev[batch * hidden_size + hidx] +
+                        b_z[hidx]);
+        T o_gate = sigmoid(w_o[hidx] * x[batch * input_size + hidx] +
+                           r_o[hidx] * h_prev[batch * hidden_size + hidx] +
+                           b_o[hidx]);
 
         // Backpropagation through time (BPTT)
         T grad_o = grad_h[i] * (c[i] / (n[i] + epsilon));
@@ -177,12 +175,7 @@ void launch_slstm_forward(const T *x,
                           const T *b_o,
                           int batch_size,
                           int input_size,
-                          int hidden_size,
-                          T *i_gate,
-                          T *f_gate,
-                          T *z_gate,
-                          T *o_gate)
-)
+                          int hidden_size)
 {
     dim3 block(256);
     dim3 grid((batch_size * hidden_size + block.x - 1) / block.x);
@@ -192,8 +185,7 @@ void launch_slstm_forward(const T *x,
                                              w_i, w_f, w_z, w_o,
                                              r_i, r_f, r_z, r_o,
                                              b_i, b_f, b_z, b_o,
-                                             batch_size, input_size, hidden_size,
-                                             i_gate, f_gate, z_gate, o_gate);
+                                             batch_size, input_size, hidden_size);
 }
 
 // Launch the sLSTM backward pass kernel
@@ -232,11 +224,7 @@ void launch_slstm_backward(const T *grad_h,
                            T *grad_b_o,
                            int batch_size,
                            int input_size,
-                           int hidden_size,
-                           const T *i_gate,
-                           const T *f_gate,
-                           const T *z_gate,
-                           const T *o_gate)
+                           int hidden_size)
 {
     dim3 block(256);
     dim3 grid((batch_size * hidden_size + block.x - 1) / block.x);
@@ -252,6 +240,5 @@ void launch_slstm_backward(const T *grad_h,
                                               grad_w_i, grad_w_f, grad_w_z, grad_w_o,
                                               grad_r_i, grad_r_f, grad_r_z, grad_r_o,
                                               grad_b_i, grad_b_f, grad_b_z, grad_b_o,
-                                              batch_size, input_size, hidden_size,
-                                              i_gate, f_gate, z_gate, o_gate);
+                                              batch_size, input_size, hidden_size);
 }

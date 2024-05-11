@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.8)
 project(xlstm_cuda LANGUAGES CUDA CXX)
 
+if(POLICY CMP0104)
+    cmake_policy(SET CMP0104 NEW)
+endif()
+
 # Set CUDA compiler flags
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -arch=sm_70 -lineinfo -Xcompiler -Wall,-Wextra")
 
