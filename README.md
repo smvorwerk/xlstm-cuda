@@ -109,16 +109,22 @@ output = model(embeddings)
 
 If you use xLSTM in your research, please cite the original paper:
 
-@article{beck2023xlstm,
+```bibtex
+@article{Beck2024xLSTM,
   title={xLSTM: Extended Long Short-Term Memory},
   author={Beck, Maximilian and Pöppel, Korbinian and Spanring, Markus and Auer, Andreas and Prudnikova, Oleksandra and Kopp, Michael and Klambauer, Günter and Brandstetter, Johannes and Hochreiter, Sepp},
   journal={arXiv preprint arXiv:2405.04517},
-  year={2023}
+  year={2024}
 }
+```
 
 ## License
 
 This project is licensed under the [MIT License](./LICENSE).
+
+## Contributing
+
+Contributions to PyxLSTM are welcome! If you find any issues or have suggestions for improvements, please open an issue or submit a pull request on the GitHub repository.
 
 ## Directory Structure
 
