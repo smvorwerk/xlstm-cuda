@@ -25,7 +25,7 @@ Read more about this library and the architecture it is attempting to implement 
 
     ```shell
     git clone https://github.com/smvorwerk/xlstm-cuda.git
-    cd xLSTM
+    cd xlstm-cuda
     ```
 
 2. Build the C++ and CUDA libraries:
